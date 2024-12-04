@@ -34,11 +34,20 @@ function make_new_arsenik_keymap() {
     local keyboard_name="$1"
     local qmk_cmd="$2"
     local no_editor="$3"
+    local override="$4"
 
     local keymap_folder=$(get_keymaps_folder "$keyboard_name")
     local arsenik_folder="$keymap_folder/arsenik"
     local default_keymap_folder="$keymap_folder/default"
 
+    if test -d "$arsenik_folder"; then
+        if [ $override = true ]; then
+            rm -rf "$arsenik_folder"
+        else
+            echo "Arsenik directory already exists. Set '-x' flag to override."
+            exit
+        fi
+    fi
     cp -r "$default_keymap_folder" "$arsenik_folder"
 
     local layout=""
@@ -73,6 +82,7 @@ function make_new_arsenik_keymap() {
 }
 
 
+override=false
 no_editor=false
 qmk_cmd="none"
 for arg in "${@:2}"; do
@@ -81,7 +91,9 @@ for arg in "${@:2}"; do
         "-b") qmk_cmd="build";;
         "-f") qmk_cmd="flash";;
         *) echo "Unknown argument $arg."; exit 1;;
+    "-x") override=true ;;
     esac
 done
 
 make_new_arsenik_keymap "$1" "$qmk_cmd" "$no_editor"
+make_new_arsenik_keymap "$1" "$qmk_cmd" "$no_editor" "$override"
